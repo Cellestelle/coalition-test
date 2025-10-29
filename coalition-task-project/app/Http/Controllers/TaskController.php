@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ReorderTasksRequest;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
@@ -38,26 +40,23 @@ class TaskController extends Controller
     }
 
     // Edit tasks fields (name, project)
-    public function update(Request $request, Task $task)
+    public function update(UpdateTaskRequest $request, Task $task)
     {
-        $data = $request->validate([
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'project_id' => ['sometimes', 'nullable', 'exists:projects,id'],
-        ]);
+        $validated = $request->validated();
 
-        DB::transaction(function () use ($task, $data) {
-            $oldProject = $task->project_id;
+        DB::transaction(function () use ($task, $validated) {
+            $oldProjectId = $task->project_id;
+            $oldPriority = $task->priority;
 
-            $task->fill($data);
+            $task->fill($validated);
 
-            // If project changed, push to bottom of new project’s list and densify the old one
             if ($task->isDirty('project_id')) {
-                // densify old project priorities
-                Task::where('project_id', $oldProject)
-                    ->where('priority', '>', $task->priority)
+                // Densify priorities in the old project scope
+                Task::where('project_id', $oldProjectId)
+                    ->where('priority', '>', $oldPriority)
                     ->decrement('priority');
 
-                // assign new priority at bottom of new project
+                // Push to bottom of the new project scope
                 $newMax = Task::where('project_id', $task->project_id)->max('priority') ?? 0;
                 $task->priority = $newMax + 1;
             }
@@ -80,14 +79,10 @@ class TaskController extends Controller
 
 
     // Rearrange tasks after drag-and-drop
-    public function reorder(Request $request)
+    public function reorder(ReorderTasksRequest $request)
     {
-        $data = $request->validate([
-            'ordered' => ['required', 'array', 'min:1'],
-            'projectId' => ['nullable', 'integer'], // optional if you want to scope client-side
-        ]);
-
-        $ids = $data['ordered'];
+        $validated = $request->validated();
+        $ids = $validated['ordered'];
 
         DB::transaction(function () use ($ids) {
             foreach ($ids as $i => $id) {
@@ -97,7 +92,5 @@ class TaskController extends Controller
 
         return response()->json(['ok' => true]);
     }
-
-
 
 }

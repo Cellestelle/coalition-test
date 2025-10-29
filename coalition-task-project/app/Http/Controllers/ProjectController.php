@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Project;
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
 
 class ProjectController extends Controller
 {
@@ -16,27 +18,16 @@ class ProjectController extends Controller
     }
 
     // Store project
-    public function store(Request $request)
+public function store(StoreProjectRequest $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-
-        Project::create($data);
-
+        Project::create($request->validated());
         return back()->with('ok', 'Project created');
     }
 
-
     // Update project details
-    public function update(Request $request, Project $project)
+     public function update(UpdateProjectRequest $request, Project $project)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-
-        $project->update($data);
-
+        $project->update($request->validated());
         return back()->with('ok', 'Project updated');
     }
 
