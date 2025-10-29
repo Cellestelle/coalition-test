@@ -18,14 +18,14 @@ class ProjectController extends Controller
     }
 
     // Store project
-public function store(StoreProjectRequest $request)
+    public function store(StoreProjectRequest $request)
     {
         Project::create($request->validated());
         return back()->with('ok', 'Project created');
     }
 
     // Update project details
-     public function update(UpdateProjectRequest $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
         $project->update($request->validated());
         return back()->with('ok', 'Project updated');
@@ -39,4 +39,25 @@ public function store(StoreProjectRequest $request)
 
         return back()->with('ok', 'Project deleted');
     }
+
+    public function bulk(Request $request)
+    {
+        $action = $request->input('action'); // e.g., "rename-3" or "delete-7"
+
+        if (str_starts_with($action, 'rename-')) {
+            $id = (int) str_replace('rename-', '', $action);
+            $name = $request->input("projects.$id.name");
+            Project::findOrFail($id)->update(['name' => $name]);
+            return back()->with('ok', 'Project renamed');
+        }
+
+        if (str_starts_with($action, 'delete-')) {
+            $id = (int) str_replace('delete-', '', $action);
+            Project::findOrFail($id)->delete();
+            return back()->with('ok', 'Project deleted');
+        }
+
+        return back();
+    }
+
 }
