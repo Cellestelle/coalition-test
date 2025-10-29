@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class ReorderTasksRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'ordered' => ['required', 'array', 'min:1'],
+            'ordered.*' => ['integer', 'exists:tasks,id'],
+            'projectId' => ['nullable', 'integer', 'exists:projects,id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'ordered.required' => 'Please provide the task order.',
+            'ordered.*.exists' => 'One or more tasks could not be found.',
+        ];
+    }
+}
