@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    protected $fillable = ['name'];
+    // Mass-assignable fields
+    protected $fillable = [
+        'name'
+    ];
+
+    // Relatiopnship: A project has many tasks
     public function tasks()
     {
         return $this->hasMany(Task::class)->orderBy('priority');
