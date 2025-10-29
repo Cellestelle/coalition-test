@@ -15,11 +15,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $alpha = \App\Models\Project::firstOrCreate(['name' => 'Alpha']);
+        $beta = \App\Models\Project::firstOrCreate(['name' => 'Beta']);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        foreach (['Design spec', 'API scaffold', 'Write tests'] as $i => $n) {
+            \App\Models\Task::firstOrCreate([
+                'name' => $n,
+                'project_id' => $alpha->id,
+                'priority' => $i + 1
+            ]);
+        }
+        foreach (['Marketing copy', 'Landing page', 'Deploy'] as $i => $n) {
+            \App\Models\Task::firstOrCreate([
+                'name' => $n,
+                'project_id' => $beta->id,
+                'priority' => $i + 1
+            ]);
+        }
     }
+
 }
